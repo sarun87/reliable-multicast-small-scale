@@ -1,36 +1,29 @@
 package p2mp;
 
-import java.io.*;
-import java.net.*;
 import java.util.ArrayList;
 
-/**
- * @author arun
- */
 class UDPClient
 {
 	
 	public static void main(String args[]) {
 
 		 // Initialize the parameters given using the command-line
-	   	ArrayList<String> serverIPs = new ArrayList<String>();
+	   	DataRepository.serverIPs = new ArrayList<String>();
 	   	Integer portNumber = Integer.parseInt(args[0]);
 	   	int i=0;
 	   	for(i=1; args[i].contains(".") == true && args[i].contains(".txt")==false;++i){
-	   		serverIPs.add(args[i].toString());
+	   		DataRepository.serverIPs.add(args[i].toString());
 	   	}
-	   	String fileName = args[i];
+	   	DataRepository.fileName = args[i];
 	   	String windowSize = args[i+1];
 	   	String MSS = args[i+2];
-	   	
-	   	// Start timer thread
-	   	//Thread timerThread = new Thread(new Timer());
-	   	//timerThread.start();
-	   	
-	   	// Start byte send
-	   	
-	   	
-	   	
+
+	   	// Set the Number of Receivers, Widow Size and Number of
+	   	// receivers in the DataRepository.
+	   	DataRepository.setMSS(Integer.parseInt(MSS));
+	   	DataRepository.setPortNumber(portNumber);
+	   	DataRepository.setWindowSize(Integer.parseInt(windowSize));
+	   	DataRepository.setNumberOfSenders(DataRepository.serverIPs.size());
 	}
 	
 	
