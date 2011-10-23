@@ -17,6 +17,7 @@ public class Datagram {
     private byte[] datagramType;
     private byte[] data;
     private byte[] dataSize;
+    public int Length;
 
     public Datagram(byte[] data, int dataSize, boolean isDataPacket) {
         sequenceNumber = ByteBuffer.allocate(4).putInt(DataRepository.getNextSequenceNumber()).array();
@@ -31,7 +32,8 @@ public class Datagram {
     }
 
     public byte[] getBytes() {
-        byte[] temp = new byte[sequenceNumber.length + checksum.length + datagramType.length + dataSize.length + data.length];
+        Length = sequenceNumber.length + checksum.length + datagramType.length + dataSize.length + data.length;
+        byte[] temp = new byte[Length];
         System.arraycopy(sequenceNumber, 0, temp, 0, sequenceNumber.length);
         System.arraycopy(checksum, 0, temp, sequenceNumber.length, checksum.length);
         System.arraycopy(datagramType, 0, temp, sequenceNumber.length + checksum.length, datagramType.length);

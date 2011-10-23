@@ -80,8 +80,7 @@ public class SlidingWindow {
  	// Call this method when the window is incremented. If window is incremented
  	// by more than 1 segment, this method has to be called for each segment.
  	// This is used to remove the sequence number from the hashmap. Also, for
- 	// the
- 	// new elements in the hash map, the addSeqInMap has to be called.
+ 	// the new elements in the hash map, the addSeqInMap has to be called.
  	public static void deleteAckElementAfterWindowMove(int sequenceNumber) {
  		Window.remove(sequenceNumber);
  	}
