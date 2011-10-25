@@ -16,6 +16,26 @@ public class SlidingWindow {
     public static int EndingSeqNumber = 0;
     public static HashMap<Integer, Segment> Window = new HashMap<Integer, Segment>(DataRepository.WINDOWSIZE);
     
+    // Added segment to Sliding window
+    public static boolean addItemToWindow(int sequenceNumber,Segment info){
+    	if(EndingSeqNumber+1 - StartingSeqNumber > DataRepository.WINDOWSIZE){
+    		return false;
+    	}
+    	Window.put(sequenceNumber, info);
+    	EndingSeqNumber = EndingSeqNumber + 1;
+    	return true;   	
+    }
+    
+    // Remove segment from sliding window
+    public static boolean removeItemFromWindow(int sequenceNumber){
+    	if(sequenceNumber >=StartingSeqNumber && sequenceNumber <= EndingSeqNumber){
+    		Window.remove(sequenceNumber);
+    		StartingSeqNumber = StartingSeqNumber + 1;
+    		return true;
+    	}
+    	return false;
+    }
+    
     ///////////// Acknowledgment handling ////////////
 
  	// Ack's the segment that is got from the receiver and checks if triple dup
