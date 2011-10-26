@@ -30,7 +30,7 @@ class UDPServer {
 		
 		// Start waiting for packets
 		DatagramSocket serverSocket = new DatagramSocket(portNo);
-		System.out.println("Waiting for incoming packets...");
+		System.out.println("Init Complete. Waiting for incoming packets...");
 		byte[] receiveData = new byte[1032];
 		byte[] sendData = new byte[12];
 		while (true) {
@@ -40,9 +40,11 @@ class UDPServer {
 			InetAddress IPAddress = receivePacket.getAddress();
 			int port = receivePacket.getPort();
 			
-			//// TODO: CHECK WITH PACKET LOSS PROBABILITY TO SIMULATE LOST PACKETS //////
-			if(packetLossProbability == 0.1){
-				
+			// CHECK WITH PACKET LOSS PROBABILITY TO SIMULATE LOST PACKETS //////
+			double randomProb = Math.random();
+			if(randomProb < packetLossProbability){
+				// Discard packet. Do nothing.
+				continue;
 			}
 			//////////////////////////
 			
@@ -61,11 +63,13 @@ class UDPServer {
 			long checkSumResult = InternetChecksum.getCheckSum(ByteBuffer.allocate(dataSize+12).put(receiveData,0,12+dataSize).array(), receivedDatagram.checksum);
 			if(checkSumResult != 0xffff ){
 				// Discard packet, do nothing
+				System.out.println("Error in packet with seq:"+seqNumber);
 				continue;
 			}
 			if(seqNumber == DataRepository.expectedSequenceNumber){
 				// Expected in-sequence segment has arrived
 				// send this and the other in-sequence packets to the upper layer.
+				System.out.println("In sequence packet with seq:"+seqNumber);
 				SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 				
 				// Wrong..
@@ -78,13 +82,16 @@ class UDPServer {
 						break;
 					}
 				}
+				System.out.print("Sending segments to upper layer:");
 				for(int count = SlidingWindow.StartingSeqNumber; count < maxSeqInOrder; ++count){
 					Datagram dgToBeWritten = SlidingWindow.Window.get(seqNumber);
 					Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt();
 					CharBuffer dataToBeWritten = ByteBuffer.allocate(size).put(dgToBeWritten.data).asCharBuffer();
 					out.write(dataToBeWritten.array());
 					SlidingWindow.removeItemFromWindow(count);
+					System.out.print(" "+count+" ");
 				}
+				System.out.println("");
 				//for(int count = SlidingWindow.StartingSeqNumber; count <seqNumber; ++count){
 				//	SlidingWindow.removeItemFromWindow(count);
 				//}
@@ -98,12 +105,14 @@ class UDPServer {
 				DatagramPacket sendPacket = new DatagramPacket(sendData,
 									sendData.length, IPAddress, port);
 				serverSocket.send(sendPacket);
+				System.out.println("Ack:"+seqNumber+ " sent");
 				
 			}
 			else
 			{
 				if(seqNumber >= SlidingWindow.StartingSeqNumber && seqNumber < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE){
 					// Out of sequence packet. Buffer it and send ack for expected Sequence Number - 1 (Previously ack'ed packet)
+					System.out.println("Out-of-Seq segment recieved with seq:"+seqNumber);
 					SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 					
 					// Send ack with packet previously ack'ed.
@@ -118,27 +127,18 @@ class UDPServer {
 					serverSocket.send(sendPacket);
 				}
 				else if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt() == DataRepository.ACKPACKET){
+					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
 					break;
 				}
 				else
 				{
 					// Packet out of sequence and invalid.
 					// Drop packet and do nothing.
+					System.out.println("Invalid packet/packet not in window. seq:"+seqNumber);
 					continue;
 				}
-			}
-			//serverSocket.receive(receivePacket);
-			//String sentence = new String(receivePacket.getData());
-			//System.out.println("RECEIVED: " + sentence);
-
-			//String capitalizedSentence = "Received by Server:"
-			//		+ InetAddress.getLocalHost().toString() + "Bytes:"
-			//		+ sentence.length();
-			//sendData = capitalizedSentence.getBytes();
-			//DatagramPacket sendPacket = new DatagramPacket(sendData,
-			//		sendData.length, IPAddress, port);
-			//serverSocket.send(sendPacket);
-		}
+			}  // End of else - Not the right seq number
+		} // End of while construct
 		out.close();
-	}
-}
+	} // End of Method - main
+} // End of Method - class
