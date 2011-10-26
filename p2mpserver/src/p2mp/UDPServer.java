@@ -1,10 +1,10 @@
 package p2mp;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
+
 
 /**
  * 
@@ -25,8 +25,10 @@ class UDPServer {
 		DataRepository.fileName = fileName;
 
 		// Open file that has to be written into
-		FileWriter fwriter = new FileWriter(fileName);
-		BufferedWriter out = new BufferedWriter(fwriter);
+		//FileWriter fwriter = new FileWriter(fileName);
+		//BufferedWriter out = new BufferedWriter(fwriter);
+		File file = new File(fileName);
+		FileOutputStream out = new FileOutputStream(file);
 		
 		// Start waiting for packets
 		DatagramSocket serverSocket = new DatagramSocket(portNo);
@@ -76,21 +78,23 @@ class UDPServer {
 				System.out.println("In sequence packet with seq:"+seqNumber);
 				SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 				
-				// Wrong..
 				int maxSeqInOrder;
 				for(maxSeqInOrder = seqNumber; maxSeqInOrder < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE; ++maxSeqInOrder){
 					Datagram value = SlidingWindow.Window.get(maxSeqInOrder);
-					if (value == null){
-						DataRepository.expectedSequenceNumber = maxSeqInOrder;
-						maxSeqInOrder = maxSeqInOrder - 1;
+					if (value != null){
+						DataRepository.expectedSequenceNumber = maxSeqInOrder+1;
+					}
+					else{
 						break;
 					}
 				}
+				maxSeqInOrder = maxSeqInOrder - 1;
 				System.out.print("Sending segments to upper layer:");
 				for(int count = SlidingWindow.StartingSeqNumber; count <= maxSeqInOrder; ++count){
-					Datagram dgToBeWritten = SlidingWindow.Window.get(seqNumber);
+					Datagram dgToBeWritten = SlidingWindow.Window.get(count);
 					//Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt(0);
-					out.write(new String(dgToBeWritten.data));
+					//String writeString = new String(dgToBeWritten.data);
+					out.write(dgToBeWritten.data);
 					SlidingWindow.removeItemFromWindow(count);
 					System.out.print(" "+count+" ");
 				}
@@ -108,7 +112,7 @@ class UDPServer {
 				DatagramPacket sendPacket = new DatagramPacket(sendData,
 									sendData.length, IPAddress, port);
 				serverSocket.send(sendPacket);
-				System.out.println("Ack:"+seqNumber+ " sent");
+				System.out.println("Ack:"+(DataRepository.expectedSequenceNumber -1)+ " sent");
 				
 			}
 			else
@@ -124,6 +128,7 @@ class UDPServer {
 					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
+					System.out.println("Ack:"+(DataRepository.expectedSequenceNumber-1)+" sent");
 					// Construct a java datagram packet and send it.
 					DatagramPacket sendPacket = new DatagramPacket(sendData,
 										sendData.length, IPAddress, port);
@@ -139,6 +144,7 @@ class UDPServer {
 					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
+					System.out.println("Ack:"+(DataRepository.expectedSequenceNumber - 1)+ " sent");
 					// Construct a java datagram packet and send it.
 					DatagramPacket sendPacket = new DatagramPacket(sendData,
 										sendData.length, IPAddress, port);
