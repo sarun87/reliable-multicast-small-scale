@@ -110,10 +110,25 @@ class UDPServer {
 			}
 			else
 			{
-				if(seqNumber >= SlidingWindow.StartingSeqNumber && seqNumber < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE){
+				if(seqNumber > DataRepository.expectedSequenceNumber && seqNumber < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE){
 					// Out of sequence packet. Buffer it and send ack for expected Sequence Number - 1 (Previously ack'ed packet)
 					System.out.println("Out-of-Seq segment recieved with seq:"+seqNumber);
 					SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
+					
+					// Send ack with packet previously ack'ed.
+					Datagram acknowledgmentPacket = new Datagram();
+					acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
+					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(DataRepository.expectedSequenceNumber-1).array();
+					sendData = acknowledgmentPacket.getBytes();
+					
+					// Construct a java datagram packet and send it.
+					DatagramPacket sendPacket = new DatagramPacket(sendData,
+										sendData.length, IPAddress, port);
+					serverSocket.send(sendPacket);
+				}
+				else if(seqNumber < DataRepository.expectedSequenceNumber){
+					// Already acke'd. Re-ack with the last packet that has already been sent to the higher layer.
+					System.out.println("Already ack-ed segment received with seq:"+seqNumber);
 					
 					// Send ack with packet previously ack'ed.
 					Datagram acknowledgmentPacket = new Datagram();
