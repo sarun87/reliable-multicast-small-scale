@@ -21,14 +21,14 @@ public class Datagram {
     public int Length;
 
     public Datagram(byte[] data, int dataSize, boolean isDataPacket) {
-        sequenceNumber = ByteBuffer.allocate(4).putInt(DataRepository.getNextSequenceNumber()).array();
+        sequenceNumber = ByteBuffer.allocate(4).putInt(0, DataRepository.getNextSequenceNumber()).array();
         if (isDataPacket) {
-            datagramType = ByteBuffer.allocate(2).putInt(DataRepository.DATAPACKET).array();
+            datagramType = ByteBuffer.allocate(2).putChar(0 ,DataRepository.DATAPACKET).array();
         } else {
-            datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
+            datagramType = ByteBuffer.allocate(2).putChar(0, DataRepository.ACKPACKET).array();
         }
         this.data = data;
-        checksum = ByteBuffer.allocate(2).putLong(InternetChecksum.getCheckSum(data)).array();
+        checksum = ByteBuffer.allocate(2).putChar((char)(InternetChecksum.getCheckSum(data))).array();
         this.dataSize = ByteBuffer.allocate(4).putInt(dataSize).array();
     }
 
@@ -51,6 +51,6 @@ public class Datagram {
     }
 
     public int getSequenceNumber() {
-        return ByteBuffer.allocate(4).put(sequenceNumber, 0, 4).getInt();
+        return ByteBuffer.allocate(4).put(sequenceNumber, 0, 4).getInt(0);
     }
 }

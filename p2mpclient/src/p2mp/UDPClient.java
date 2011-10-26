@@ -1,5 +1,6 @@
 package p2mp;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -12,10 +13,23 @@ class UDPClient {
     public static void main(String args[]) {
         try {
             initDataRepository(args);
+            DatagramSender ds = DatagramSender.getInstance();
+
             Thread networkListnerThread = new Thread(new NetworkListner());
             networkListnerThread.start();
             Thread ackListnerThread = new Thread(new AckListner());
             ackListnerThread.start();
+
+            for (int i = 0; i < DataRepository.WINDOWSIZE; i++) {
+                try {
+                    Datagram tempDg = ds.TransmitNextSegment();
+                    Segment tempSeg = new Segment(tempDg);
+                    SlidingWindow.addItemToWindow(tempDg.getSequenceNumber(), tempSeg);
+                } catch (IOException ex) {
+                    Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
             //Thread timerThread = new Thread(new Timer());
             //timerThread.start();
 
@@ -39,8 +53,9 @@ class UDPClient {
             DataRepository.SENDER_PORT_NUMBER = Integer.parseInt(args[0]);
             int i = 0;
             for (i = 1; args[i].contains(".") == true && args[i].contains(".txt") == false; ++i) {
-                DataRepository.serverIPs.put(args[i].toString(), i);
+                DataRepository.serverIPs.put(args[i].toString(), i - 1);
             }
+            DataRepository.NUMBER_OF_RECEIVERS = i - 1;
             DataRepository.clientSocket = new DatagramSocket();
 
             DataRepository.fileName = args[i];
