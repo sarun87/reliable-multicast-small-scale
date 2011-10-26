@@ -44,12 +44,9 @@ public class SlidingWindow {
  	public static boolean setAck(int sequenceNumber, int receiver) {
  		// Increment the number of ack's received.
  		// Return the now. of ack finished.
- 		if (sequenceNumber > -1 && sequenceNumber < DataRepository.WINDOWSIZE) {
+ 		if (sequenceNumber >= StartingSeqNumber && sequenceNumber < StartingSeqNumber + DataRepository.WINDOWSIZE) {
  			Segment result = Window.get(sequenceNumber);
- 			result.ReceiverAckList[receiver] =result.ReceiverAckList[receiver] +1;
- 			// @ToCheck Replace the entire thing? Check if the value of hash map be changed
- 			// without replace of entire segment.
- 			// Window.remove(sequenceNumber);
+ 			result.ReceiverAckList[receiver] =result.ReceiverAckList[receiver] +1
  			Window.put(sequenceNumber, result);
  		
  			/// Cumulative ack logic. (Ack all the previous ack's if this ack is bigger..
@@ -62,7 +59,6 @@ public class SlidingWindow {
  					Window.put(keys[i],value);
  				}
  			}
- 			// ackArray[sequenceNumber][receiver]++;
  		}
  		boolean result = checkForTripleDuplicate(sequenceNumber, receiver);
  		return result;
@@ -89,7 +85,7 @@ public class SlidingWindow {
  		return result;
  	}
 
- 	// Check if a given receiver has acked thrice.
+ 	// Check if a given receiver has acked thrice for a given sequence number.
  	public static boolean checkForTripleDuplicate(int sequenceNumber, int receiver) {
  		if ((Window.get(sequenceNumber)).ReceiverAckList[receiver] == 3)
  			return true;
@@ -97,13 +93,6 @@ public class SlidingWindow {
  			return false;
  	}
 
- 	// Call this method when the window is incremented. If window is incremented
- 	// by more than 1 segment, this method has to be called for each segment.
- 	// This is used to remove the sequence number from the hashmap. Also, for
- 	// the new elements in the hash map, the addSeqInMap has to be called.
- 	public static void deleteAckElementAfterWindowMove(int sequenceNumber) {
- 		Window.remove(sequenceNumber);
- 	}
  	
  	public static void printWindow(){
  		System.out.println("---- Ack Window -----");
