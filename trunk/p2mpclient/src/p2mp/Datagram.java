@@ -17,6 +17,7 @@ public class Datagram {
     private byte[] datagramType;
     private byte[] data;
     private byte[] dataSize;
+    public int ServerNumber;
     public int Length;
 
     public Datagram(byte[] data, int dataSize, boolean isDataPacket) {
@@ -31,6 +32,12 @@ public class Datagram {
         this.dataSize = ByteBuffer.allocate(4).putInt(dataSize).array();
     }
 
+    public Datagram(byte[] ackPacket) {
+        // 12 byte header extraction
+        sequenceNumber = ByteBuffer.allocate(4).put(ackPacket, 0, 4).array();
+        datagramType = ByteBuffer.allocate(2).put(ackPacket, 6, 2).array();
+    }
+
     public byte[] getBytes() {
         Length = sequenceNumber.length + checksum.length + datagramType.length + dataSize.length + data.length;
         byte[] temp = new byte[Length];
@@ -39,7 +46,11 @@ public class Datagram {
         System.arraycopy(datagramType, 0, temp, sequenceNumber.length + checksum.length, datagramType.length);
         System.arraycopy(dataSize, 0, temp, sequenceNumber.length + checksum.length + datagramType.length, dataSize.length);
         System.arraycopy(data, 0, temp, sequenceNumber.length + checksum.length + datagramType.length + dataSize.length, data.length);
-        
+
         return temp;
+    }
+
+    public int getSequenceNumber() {
+        return ByteBuffer.allocate(4).put(sequenceNumber, 0, 4).getInt();
     }
 }
