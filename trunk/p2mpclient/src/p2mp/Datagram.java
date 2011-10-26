@@ -28,7 +28,7 @@ public class Datagram {
             datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
         }
         this.data = data;
-        checksum = ByteBuffer.allocate(2).putLong(InternetChecksum.getCheckSum()).array();
+        checksum = ByteBuffer.allocate(2).putLong(InternetChecksum.getCheckSum(data)).array();
         this.dataSize = ByteBuffer.allocate(4).putInt(dataSize).array();
     }
 

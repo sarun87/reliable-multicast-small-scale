@@ -60,8 +60,9 @@ class UDPServer {
 			// Data Extraction by using the dataSize present in the header.
 			receivedDatagram.data = ByteBuffer.allocate(dataSize).put(receiveData,12,dataSize).array();
 			// Check checksum
-			long checkSumResult = InternetChecksum.getCheckSum(ByteBuffer.allocate(dataSize+12).put(receiveData,0,12+dataSize).array(), receivedDatagram.checksum);
-			if(checkSumResult != 0xffff ){
+			long checkSumResult = InternetChecksum.getCheckSum(ByteBuffer.allocate(dataSize).put(receiveData,12,dataSize).array());
+			long checkSum = ByteBuffer.allocate(2).put(receivedDatagram.checksum).getLong();
+			if(checkSumResult != checkSum ){
 				// Discard packet, do nothing
 				System.out.println("Error in packet with seq:"+seqNumber);
 				continue;
