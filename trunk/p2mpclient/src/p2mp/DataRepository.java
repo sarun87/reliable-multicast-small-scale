@@ -10,14 +10,15 @@ import java.util.Queue;
 
 public class DataRepository {
 
-    private static int nextSequenceNumber = -1;
+
     public static boolean FILE_TRANSFER_COMPLETE = false;
     public static boolean WAITING_FOR_LAST_ACK = false;
     public static boolean LAST_DATAPACKET_SENT = false;
-    public static int LAST_DATAPACKET_SEQNO = -1;
+    public static int LAST_DATAPACKET_SEQNO = -2;
+    
     public static int RTT = 500;//in milliseconds
-    public static final int DATAPACKET = 0x5555;
-    public static final int ACKPACKET = 0xAAAA;
+    public static final char DATAPACKET = (char)(0x5555);
+    public static final char ACKPACKET = (char)(0xAAAA);
     public static final int HEADER_SIZE = 12;
     
     public static int MSS = -1;
@@ -31,7 +32,8 @@ public class DataRepository {
     
     public static Queue<Datagram> AckQueue;// queue to hold the received acks - processed later by the ackreceiver
 
+    private static int nextSequenceNumber = -1;
     public static int getNextSequenceNumber() {
-        return (int) ((nextSequenceNumber++) % Math.pow(2, 32));
+        return (int) ((++nextSequenceNumber) % Math.pow(2, 32));
     }
 }

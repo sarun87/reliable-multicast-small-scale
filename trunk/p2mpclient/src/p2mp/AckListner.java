@@ -25,6 +25,9 @@ public class AckListner implements Runnable {
                 while (!DataRepository.AckQueue.isEmpty()) {
                     Datagram dg = DataRepository.AckQueue.poll();
                     int seqNo = dg.getSequenceNumber();
+                    if (seqNo == -1) {
+                        myDatagramSender.Retransmit(seqNo + 1, dg.ServerNumber);
+                    }
                     boolean setAck = SlidingWindow.setAck(seqNo, dg.ServerNumber);
                     if (setAck) {
                         //a triple ack has been found ... so do fast retransmit
