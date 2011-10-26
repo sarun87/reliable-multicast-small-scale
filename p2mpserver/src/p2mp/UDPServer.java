@@ -50,18 +50,21 @@ class UDPServer {
 			
 			System.out.println("Segment received! Extracting packet Information now..");
 			// 12 byte header extraction
-			int seqNumber = ByteBuffer.allocate(4).put(receiveData, 0, 4).getInt();
+			//ByteBuffer abc = ByteBuffer.allocate(4);
+			//abc.put(receiveData,0,4);
+			//int seqNumber = abc.getInt(0);
+			int seqNumber = ByteBuffer.allocate(4).put(receiveData, 0, 4).getInt(0);
 			Datagram receivedDatagram = new Datagram();
-			receivedDatagram.sequenceNumber = ByteBuffer.allocate(4).putInt(seqNumber).array();
+			receivedDatagram.sequenceNumber = ByteBuffer.allocate(4).putInt(0,seqNumber).array();
 			receivedDatagram.checksum = ByteBuffer.allocate(2).put(receiveData,4,2).array();
 			receivedDatagram.datagramType = ByteBuffer.allocate(2).put(receiveData, 6, 2).array();
 			receivedDatagram.dataSize = ByteBuffer.allocate(4).put(receiveData,8,4).array();
-			int dataSize = ByteBuffer.allocate(4).put(receivedDatagram.dataSize).getInt();
+			int dataSize = ByteBuffer.allocate(4).put(receivedDatagram.dataSize).getInt(0);
 			// Data Extraction by using the dataSize present in the header.
 			receivedDatagram.data = ByteBuffer.allocate(dataSize).put(receiveData,12,dataSize).array();
 			// Check checksum
 			long checkSumResult = InternetChecksum.getCheckSum(ByteBuffer.allocate(dataSize).put(receiveData,12,dataSize).array());
-			long checkSum = ByteBuffer.allocate(2).put(receivedDatagram.checksum).getLong();
+			long checkSum = (long)ByteBuffer.allocate(2).put(receivedDatagram.checksum).getChar(0);
 			if(checkSumResult != checkSum ){
 				// Discard packet, do nothing
 				System.out.println("Error in packet with seq:"+seqNumber);
@@ -84,11 +87,10 @@ class UDPServer {
 					}
 				}
 				System.out.print("Sending segments to upper layer:");
-				for(int count = SlidingWindow.StartingSeqNumber; count < maxSeqInOrder; ++count){
+				for(int count = SlidingWindow.StartingSeqNumber; count <= maxSeqInOrder; ++count){
 					Datagram dgToBeWritten = SlidingWindow.Window.get(seqNumber);
-					Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt();
-					CharBuffer dataToBeWritten = ByteBuffer.allocate(size).put(dgToBeWritten.data).asCharBuffer();
-					out.write(dataToBeWritten.array());
+					//Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt(0);
+					out.write(new String(dgToBeWritten.data));
 					SlidingWindow.removeItemFromWindow(count);
 					System.out.print(" "+count+" ");
 				}
@@ -98,8 +100,8 @@ class UDPServer {
 				//}
 				// Construct Ack packet
 				Datagram acknowledgmentPacket = new Datagram();
-				acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
-				acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(DataRepository.expectedSequenceNumber-1).array();
+				acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putChar((char)DataRepository.ACKPACKET).array();
+				acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 				sendData = acknowledgmentPacket.getBytes();
 				
 				// Construct a java datagram packet and send it.
@@ -118,8 +120,8 @@ class UDPServer {
 					
 					// Send ack with packet previously ack'ed.
 					Datagram acknowledgmentPacket = new Datagram();
-					acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
-					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(DataRepository.expectedSequenceNumber-1).array();
+					acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putChar((char)DataRepository.ACKPACKET).array();
+					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
 					// Construct a java datagram packet and send it.
@@ -133,8 +135,8 @@ class UDPServer {
 					
 					// Send ack with packet previously ack'ed.
 					Datagram acknowledgmentPacket = new Datagram();
-					acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putInt(DataRepository.ACKPACKET).array();
-					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(DataRepository.expectedSequenceNumber-1).array();
+					acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putChar((char)DataRepository.ACKPACKET).array();
+					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
 					// Construct a java datagram packet and send it.
