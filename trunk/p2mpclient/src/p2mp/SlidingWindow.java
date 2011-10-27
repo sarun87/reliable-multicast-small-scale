@@ -14,6 +14,7 @@ public class SlidingWindow {
 
     public static int StartingSeqNumber = 0;
     public static int EndingSeqNumber = 0;
+    public static Segment previousSegment;
     public static HashMap<Integer, Segment> Window = new HashMap<Integer, Segment>(DataRepository.WINDOWSIZE);
 
     // Added segment to Sliding window
@@ -29,6 +30,7 @@ public class SlidingWindow {
     // Remove segment from sliding window
     public static boolean removeItemFromWindow(int sequenceNumber) {
         if (sequenceNumber >= StartingSeqNumber && sequenceNumber <= EndingSeqNumber) {
+        	previousSegment = Window.get(sequenceNumber);
             Window.remove(sequenceNumber);
             StartingSeqNumber = StartingSeqNumber + 1;
             return true;
@@ -61,6 +63,10 @@ public class SlidingWindow {
             }
             result = checkForTripleDuplicate(sequenceNumber, receiver);
         }
+        else if(sequenceNumber == StartingSeqNumber -1){
+        	previousSegment.ReceiverAckList[receiver] = previousSegment.ReceiverAckList[receiver] +1;
+        	result = checkForTripleDuplicate(sequenceNumber, receiver);
+        }
         return result;
     }
 
@@ -88,11 +94,20 @@ public class SlidingWindow {
 
     // Check if a given receiver has acked thrice for a given sequence number.
     public static boolean checkForTripleDuplicate(int sequenceNumber, int receiver) {
-        if ((Window.get(sequenceNumber)).ReceiverAckList[receiver] == 3) {
+    	Segment segmentToCheck;
+    	if(sequenceNumber == StartingSeqNumber - 1){
+    		segmentToCheck = previousSegment;
+    	}
+    	else
+    	{
+    		segmentToCheck = Window.get(sequenceNumber);
+    	}
+        if (segmentToCheck.ReceiverAckList[receiver] == 3) {
             return true;
         } else {
             return false;
         }
+    	
     }
 
     public static void printWindow() {
