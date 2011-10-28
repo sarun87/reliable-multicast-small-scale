@@ -13,7 +13,6 @@ public class DataRepository {
 
     public static boolean FILE_TRANSFER_COMPLETE = false;
     public static boolean WAITING_FOR_LAST_ACK = false;
-    public static boolean LAST_DATAPACKET_SENT = false;
     public static int LAST_DATAPACKET_SEQNO = -2;
     
     public static int RTT = 500;//in milliseconds

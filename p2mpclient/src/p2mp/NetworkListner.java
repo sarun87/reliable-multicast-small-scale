@@ -30,11 +30,8 @@ public class NetworkListner implements Runnable {
                 ackReceived = new Datagram(receivePacket.getData());
                 String ipAddr = (receivePacket.getAddress().toString()).replace("/", "");
                 ackReceived.ServerNumber = DataRepository.serverIPs.get(ipAddr);
+                System.out.println("Ack received and queued -> seqNo: " + ackReceived.getSequenceNumber() + " from: " + ackReceived.ServerNumber);
                 DataRepository.AckQueue.add(ackReceived);
-                if(DataRepository.LAST_DATAPACKET_SEQNO == ackReceived.getSequenceNumber()){
-                    Thread.sleep(100);
-                    DataRepository.WAITING_FOR_LAST_ACK = true;
-                }
             } catch (Exception ex) {
                 Logger.getLogger(NetworkListner.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
