@@ -39,7 +39,7 @@ public class DatagramSender {
         }
     }
 
-    public Datagram TransmitNextSegment() throws IOException {
+    public synchronized Datagram TransmitNextSegment() throws IOException {
         byte[] dataBytes = new byte[DataRepository.MSS];
         int dataSize = myFileInputStream.read(dataBytes);
         if (dataSize > 0) {
@@ -47,16 +47,18 @@ public class DatagramSender {
             sendDatagram(tempDatagram);
             return tempDatagram;
         }
-        return null;//if the file is completely read.
+        return null;//if the file is completely read... no more bytes to send
     }
 
-    public void Retransmit(int sequenceNumber, int serverNo) {
+    public synchronized void Retransmit(int sequenceNumber, int serverNo) {
         //todo: set timer to new value.
-        Datagram dgToRetransmit = SlidingWindow.Window.get(sequenceNumber).Datapacket;
+        Segment segmentToRetransmit = SlidingWindow.Window.get(sequenceNumber);
+        segmentToRetransmit.PacketSentTime = System.currentTimeMillis();
+        Datagram dgToRetransmit = segmentToRetransmit.Datapacket;
         sendDatagram(dgToRetransmit);
     }
 
-    private void sendDatagram(Datagram dataGram) {
+    private synchronized void sendDatagram(Datagram dataGram) {
         for (Iterator it = DataRepository.serverIPs.keySet().iterator(); it.hasNext();) {
             try {
                 String ipAddr = (String) it.next();

@@ -19,7 +19,10 @@ class UDPClient {
             networkListnerThread.start();
             Thread ackListnerThread = new Thread(new AckListner());
             ackListnerThread.start();
+            Thread timerThread = new Thread(Timer.getInstance());
 
+            System.out.println("File Transfer started");
+            long start = System.currentTimeMillis();
             for (int i = 0; i < DataRepository.WINDOWSIZE; i++) {
                 try {
                     Datagram tempDg = ds.TransmitNextSegment();
@@ -29,14 +32,14 @@ class UDPClient {
                     Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
-            //Thread timerThread = new Thread(new Timer());
-            //timerThread.start();
-
+            
+            timerThread.start();
             while (!DataRepository.FILE_TRANSFER_COMPLETE) {
                 //do nothing
             }
-            //timerThread.join();
+            long end = System.currentTimeMillis();
+            System.out.println("Time taken: " + (end - start) + " ms");
+            timerThread.join();
             ackListnerThread.join();
             networkListnerThread.join();
         } catch (InterruptedException ex) {
