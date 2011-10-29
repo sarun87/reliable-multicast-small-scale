@@ -33,7 +33,7 @@ class UDPServer {
 		// Start waiting for packets
 		DatagramSocket serverSocket = new DatagramSocket(portNo);
 		System.out.println("Init Complete. Waiting for incoming packets...");
-		byte[] receiveData = new byte[1032];
+		byte[] receiveData = new byte[1036];
 		byte[] sendData = new byte[12];
 		while (true) {
 			DatagramPacket receivePacket = new DatagramPacket(receiveData,
