@@ -5,10 +5,6 @@
 package p2mp;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 
 public class SlidingWindow {
 
@@ -24,7 +20,7 @@ public class SlidingWindow {
 		if (EndingSeqNumber - StartingSeqNumber > DataRepository.WINDOWSIZE) {
 			return false;
 		}
-		
+
 		if (!Window.containsKey(sequenceNumber)) {
 			EndingSeqNumber = sequenceNumber;
 		}
@@ -38,9 +34,6 @@ public class SlidingWindow {
 	public static synchronized boolean removeItemFromWindow(int sequenceNumber) {
 		if (sequenceNumber >= StartingSeqNumber
 				&& sequenceNumber <= EndingSeqNumber) {
-//			if (StartingSeqNumber < EndingSeqNumber) {
-//				StartingSeqNumber = StartingSeqNumber + 1;
-//			}
 			StartingSeqNumber = StartingSeqNumber + 1;
 			previousSegment = Window.get(sequenceNumber);
 			Window.remove(sequenceNumber);
@@ -61,8 +54,10 @@ public class SlidingWindow {
 				&& sequenceNumber < StartingSeqNumber
 						+ DataRepository.WINDOWSIZE) {
 			Segment resultSegment = Window.get(sequenceNumber);
-			System.out.println("Start:" + StartingSeqNumber + " End:"
-					+ EndingSeqNumber + " seq:" + sequenceNumber);
+			/*
+			 * System.out.println("Start:" + StartingSeqNumber + " End:" +
+			 * EndingSeqNumber + " seq:" + sequenceNumber);
+			 */
 			resultSegment.ReceiverAckList[receiver] = resultSegment.ReceiverAckList[receiver] + 1;
 			Window.put(sequenceNumber, resultSegment);
 
@@ -89,7 +84,7 @@ public class SlidingWindow {
 	// Check if an ack is received by a given particular receiver
 	public static synchronized boolean checkAckCompletedByReciever(
 			int sequenceNumber, int receiver) {
-		if(sequenceNumber < StartingSeqNumber){
+		if (sequenceNumber < StartingSeqNumber) {
 			return true;
 		}
 		if ((Window.get(sequenceNumber)).ReceiverAckList[receiver] >= 1) {
@@ -127,22 +122,5 @@ public class SlidingWindow {
 			return false;
 		}
 
-	}
-
-	public static void printWindow() {
-		System.out.println("---- Ack Window -----");
-		Set<Map.Entry<Integer, Segment>> tempSet = Window.entrySet();
-		Iterator<Entry<Integer, Segment>> iterator = tempSet.iterator();
-		while (iterator.hasNext()) {
-			Map.Entry<Integer, Segment> entry = (Entry<Integer, Segment>) iterator
-					.next();
-			System.out.print("Seq:" + entry.getKey() + " Ack Status:");
-			int[] temp = (entry.getValue()).ReceiverAckList;
-			for (int i = 0; i < DataRepository.NUMBER_OF_RECEIVERS; ++i) {
-				System.out.print("Sender " + (i + 1) + ":" + temp[i] + "  ");
-			}
-			System.out.println("");
-		}
-		System.out.println("---------------------");
 	}
 }

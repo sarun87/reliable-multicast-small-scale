@@ -14,10 +14,10 @@ import java.util.logging.Logger;
 public class Timer implements Runnable {
 
 	private static Timer myTimer;
-	Segment earliestOutstandingSegment;
+	private Segment earliestOutstandingSegment;
 	private boolean timerReset = false;
 	private long timeToWait;
-	DatagramSender myDatagramSender;
+	private DatagramSender myDatagramSender;
 
 	public static Timer getInstance() {
 		if (myTimer == null) {
@@ -34,21 +34,20 @@ public class Timer implements Runnable {
 
 	private void RetransmitOnTimeout() {
 		if (SlidingWindow.Window.get(SlidingWindow.StartingSeqNumber) != null) {
-			System.out.print("Retransmitting on Timeout to: ");
+			// System.out.print("Retransmitting on Timeout to: ");
 			for (Integer serverNumber : DataRepository.serverIPs.values()) {
 				if (!SlidingWindow.checkAckCompletedByReciever(
 						SlidingWindow.StartingSeqNumber, serverNumber)) {
 					myDatagramSender.Retransmit(
 							SlidingWindow.StartingSeqNumber, serverNumber);
-					System.out.print(serverNumber + " ");
+					// System.out.print(serverNumber + " ");
 				}
 			}
-			System.out.println("END");
 		}
 	}
 
 	public void resetTimer() {
-		System.out.println("!!! TIMER RESET !!!");
+		// System.out.println("!!! TIMER RESET !!!");
 		timerReset = true;
 	}
 
@@ -60,18 +59,20 @@ public class Timer implements Runnable {
 						.get(SlidingWindow.StartingSeqNumber);
 
 				if (earliestOutstandingSegment != null) {
-					System.out.println("Timer started for seqno: "
-							+ earliestOutstandingSegment.Datapacket
-									.getSequenceNumber());
+					/*
+					 * System.out.println("Timer started for seqno: " +
+					 * earliestOutstandingSegment.Datapacket
+					 * .getSequenceNumber());
+					 */
 					long timeElapsed = System.currentTimeMillis()
 							- earliestOutstandingSegment.PacketSentTime;
 					this.timeToWait = DataRepository.RTT - timeElapsed;
 					timerReset = false;
-					System.out.println("timeToWait = "
-							+ timeToWait
-							+ "ms for seqno: "
-							+ earliestOutstandingSegment.Datapacket
-									.getSequenceNumber());
+					/*
+					 * System.out.println("timeToWait = " + timeToWait +
+					 * "ms for seqno: " + earliestOutstandingSegment.Datapacket
+					 * .getSequenceNumber());
+					 */
 					for (int i = (int) timeToWait; i >= 0; i--) {
 						Thread.sleep(1);
 						if (timerReset) {
@@ -79,12 +80,10 @@ public class Timer implements Runnable {
 						}
 					}
 					if (!timerReset) {
-						System.out.println("Timeout occurred for datagram: "
+						System.out.println("Timeout, Sequence Number: "
 								+ SlidingWindow.StartingSeqNumber);
 						RetransmitOnTimeout();
 					}
-				} else {
-					System.out.println("************ERROR************");
 				}
 			}
 		} catch (InterruptedException ex) {
