@@ -39,11 +39,13 @@ public class DatagramSender {
         }
     }
 
-    public synchronized Datagram TransmitNextSegment() throws IOException {
+    public Datagram TransmitNextSegment() throws IOException {
         byte[] dataBytes = new byte[DataRepository.MSS];
         int dataSize = myFileInputStream.read(dataBytes);
         if (dataSize > 0) {
             Datagram tempDatagram = new Datagram(dataBytes, dataSize, true);
+            Segment tempSeg = new Segment(tempDatagram);
+            SlidingWindow.addItemToWindow(tempDatagram.getSequenceNumber(), tempSeg);
             sendDatagram(tempDatagram);
             return tempDatagram;
         }
@@ -55,11 +57,13 @@ public class DatagramSender {
         Segment segmentToRetransmit = SlidingWindow.Window.get(sequenceNumber);
         segmentToRetransmit.PacketSentTime = System.currentTimeMillis();
         Datagram dgToRetransmit = segmentToRetransmit.Datapacket;
+        SlidingWindow.addItemToWindow(dgToRetransmit.getSequenceNumber(), segmentToRetransmit);
         sendDatagram(dgToRetransmit);
+        //System.out.println("Retransmitting datagram: " + dgToRetransmit.getSequenceNumber());
     }
 
-    private synchronized void sendDatagram(Datagram dataGram) {
-        for (Iterator it = DataRepository.serverIPs.keySet().iterator(); it.hasNext();) {
+    private void sendDatagram(Datagram dataGram) {
+        for (Iterator<String> it = DataRepository.serverIPs.keySet().iterator(); it.hasNext();) {
             try {
                 String ipAddr = (String) it.next();
                 DatagramPacket sendPacket = new DatagramPacket(dataGram.getBytes(), dataGram.Length, InetAddress.getByName(ipAddr), DataRepository.SENDER_PORT_NUMBER);
