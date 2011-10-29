@@ -34,13 +34,11 @@ public class Timer implements Runnable {
 
 	private void RetransmitOnTimeout() {
 		if (SlidingWindow.Window.get(SlidingWindow.StartingSeqNumber) != null) {
-			// System.out.print("Retransmitting on Timeout to: ");
 			for (Integer serverNumber : DataRepository.serverIPs.values()) {
 				if (!SlidingWindow.checkAckCompletedByReciever(
 						SlidingWindow.StartingSeqNumber, serverNumber)) {
 					myDatagramSender.Retransmit(
 							SlidingWindow.StartingSeqNumber, serverNumber);
-					// System.out.print(serverNumber + " ");
 				}
 			}
 		}
@@ -59,20 +57,10 @@ public class Timer implements Runnable {
 						.get(SlidingWindow.StartingSeqNumber);
 
 				if (earliestOutstandingSegment != null) {
-					/*
-					 * System.out.println("Timer started for seqno: " +
-					 * earliestOutstandingSegment.Datapacket
-					 * .getSequenceNumber());
-					 */
 					long timeElapsed = System.currentTimeMillis()
 							- earliestOutstandingSegment.PacketSentTime;
 					this.timeToWait = DataRepository.RTT - timeElapsed;
 					timerReset = false;
-					/*
-					 * System.out.println("timeToWait = " + timeToWait +
-					 * "ms for seqno: " + earliestOutstandingSegment.Datapacket
-					 * .getSequenceNumber());
-					 */
 					for (int i = (int) timeToWait; i >= 0; i--) {
 						Thread.sleep(1);
 						if (timerReset) {
