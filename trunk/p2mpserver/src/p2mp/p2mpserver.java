@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * @author arun
  * 
  */
-class UDPServer {
+class p2mpserver {
 	public static void main(String args[]) throws Exception {
 		// Initialize the parameters given using the command-line
 		Integer portNo = Integer.parseInt(args[0]);
