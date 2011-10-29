@@ -42,20 +42,20 @@ class UDPServer {
 			InetAddress IPAddress = receivePacket.getAddress();
 			int port = receivePacket.getPort();
 			
+			//System.out.println("Segment received! Extracting packet Information now..");
+			// 12 byte header extraction
+
+			int seqNumber = ByteBuffer.allocate(4).put(receiveData, 0, 4).getInt(0);
+			
 			// CHECK WITH PACKET LOSS PROBABILITY TO SIMULATE LOST PACKETS //////
 			double randomProb = Math.random();
 			if(randomProb < packetLossProbability){
 				// Discard packet. Do nothing.
+				System.out.println("Packet Loss, sequence Number = "+ seqNumber );
 				continue;
 			}
 			//////////////////////////
 			
-			System.out.println("Segment received! Extracting packet Information now..");
-			// 12 byte header extraction
-			//ByteBuffer abc = ByteBuffer.allocate(4);
-			//abc.put(receiveData,0,4);
-			//int seqNumber = abc.getInt(0);
-			int seqNumber = ByteBuffer.allocate(4).put(receiveData, 0, 4).getInt(0);
 			Datagram receivedDatagram = new Datagram();
 			receivedDatagram.sequenceNumber = ByteBuffer.allocate(4).putInt(0,seqNumber).array();
 			receivedDatagram.checksum = ByteBuffer.allocate(2).put(receiveData,4,2).array();
@@ -69,14 +69,19 @@ class UDPServer {
 			long checkSum = (long)ByteBuffer.allocate(2).put(receivedDatagram.checksum).getChar(0);
 			if(checkSumResult != checkSum ){
 				// Discard packet, do nothing
-				System.out.println("Error in packet with seq:"+seqNumber);
+				//System.out.println("Error in packet with seq:"+seqNumber);
 				continue;
 			}
 			if(seqNumber == DataRepository.expectedSequenceNumber){
 				// Expected in-sequence segment has arrived
 				// send this and the other in-sequence packets to the upper layer.
-				System.out.println("In sequence packet with seq:"+seqNumber);
+				//System.out.println("In sequence packet with seq:"+seqNumber);
 				SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
+				
+				if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt() == DataRepository.ACKPACKET){
+					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
+					break;
+				}
 				
 				int maxSeqInOrder;
 				for(maxSeqInOrder = seqNumber; maxSeqInOrder < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE; ++maxSeqInOrder){
@@ -89,19 +94,17 @@ class UDPServer {
 					}
 				}
 				maxSeqInOrder = maxSeqInOrder - 1;
-				System.out.print("Sending segments to upper layer:");
+				//System.out.print("Sending segments to upper layer:");
 				for(int count = SlidingWindow.StartingSeqNumber; count <= maxSeqInOrder; ++count){
 					Datagram dgToBeWritten = SlidingWindow.Window.get(count);
 					//Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt(0);
 					//String writeString = new String(dgToBeWritten.data);
 					out.write(dgToBeWritten.data);
 					SlidingWindow.removeItemFromWindow(count);
-					System.out.print(" "+count+" ");
+					//System.out.print(" "+count+" ");
 				}
-				System.out.println("");
-				//for(int count = SlidingWindow.StartingSeqNumber; count <seqNumber; ++count){
-				//	SlidingWindow.removeItemFromWindow(count);
-				//}
+				//System.out.println("");
+
 				// Construct Ack packet
 				Datagram acknowledgmentPacket = new Datagram();
 				acknowledgmentPacket.datagramType = ByteBuffer.allocate(2).putChar((char)DataRepository.ACKPACKET).array();
@@ -112,14 +115,14 @@ class UDPServer {
 				DatagramPacket sendPacket = new DatagramPacket(sendData,
 									sendData.length, IPAddress, port);
 				serverSocket.send(sendPacket);
-				System.out.println("Ack:"+(DataRepository.expectedSequenceNumber -1)+ " sent");
+				//System.out.println("Ack:"+(DataRepository.expectedSequenceNumber -1)+ " sent");
 				
 			}
 			else
 			{
 				if(seqNumber > DataRepository.expectedSequenceNumber && seqNumber < SlidingWindow.StartingSeqNumber + DataRepository.WINDOWSIZE){
 					// Out of sequence packet. Buffer it and send ack for expected Sequence Number - 1 (Previously ack'ed packet)
-					System.out.println("Out-of-Seq segment recieved with seq:"+seqNumber);
+					//System.out.println("Out-of-Seq segment recieved with seq:"+seqNumber);
 					SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 					
 					// Send ack with packet previously ack'ed.
@@ -128,7 +131,7 @@ class UDPServer {
 					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
-					System.out.println("Ack:"+(DataRepository.expectedSequenceNumber-1)+" sent");
+					//System.out.println("Ack:"+(DataRepository.expectedSequenceNumber-1)+" sent");
 					// Construct a java datagram packet and send it.
 					DatagramPacket sendPacket = new DatagramPacket(sendData,
 										sendData.length, IPAddress, port);
@@ -136,7 +139,7 @@ class UDPServer {
 				}
 				else if(seqNumber < DataRepository.expectedSequenceNumber){
 					// Already acke'd. Re-ack with the last packet that has already been sent to the higher layer.
-					System.out.println("Already ack-ed segment received with seq:"+seqNumber);
+					//System.out.println("Already ack-ed segment received with seq:"+seqNumber);
 					
 					// Send ack with packet previously ack'ed.
 					Datagram acknowledgmentPacket = new Datagram();
@@ -144,7 +147,7 @@ class UDPServer {
 					acknowledgmentPacket.sequenceNumber= ByteBuffer.allocate(4).putInt(0,DataRepository.expectedSequenceNumber-1).array();
 					sendData = acknowledgmentPacket.getBytes();
 					
-					System.out.println("Ack:"+(DataRepository.expectedSequenceNumber - 1)+ " sent");
+					//System.out.println("Ack:"+(DataRepository.expectedSequenceNumber - 1)+ " sent");
 					// Construct a java datagram packet and send it.
 					DatagramPacket sendPacket = new DatagramPacket(sendData,
 										sendData.length, IPAddress, port);
@@ -158,7 +161,7 @@ class UDPServer {
 				{
 					// Packet out of sequence and invalid.
 					// Drop packet and do nothing.
-					System.out.println("Invalid packet/packet not in window. seq:"+seqNumber);
+					//System.out.println("Invalid packet/packet not in window. seq:"+seqNumber);
 					continue;
 				}
 			}  // End of else - Not the right seq number
