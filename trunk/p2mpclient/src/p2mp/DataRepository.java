@@ -15,7 +15,7 @@ public class DataRepository {
     public static boolean WAITING_FOR_LAST_ACK = false;
     public static int LAST_DATAPACKET_SEQNO = -2;
     
-    public static int RTT = 500;//in milliseconds
+    public static int RTT = 100;//in milliseconds
     public static final char DATAPACKET = (char)(0x5555);
     public static final char ACKPACKET = (char)(0xAAAA);
     public static final int HEADER_SIZE = 12;

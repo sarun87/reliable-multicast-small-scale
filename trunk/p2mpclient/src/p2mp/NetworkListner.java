@@ -22,7 +22,7 @@ public class NetworkListner implements Runnable {
         DatagramPacket receivePacket;
         Datagram ackReceived;
         byte[] receiveData = new byte[DataRepository.MSS + DataRepository.HEADER_SIZE];
-        while (!DataRepository.FILE_TRANSFER_COMPLETE) {//todo: while(last ack not received.)
+        while (!DataRepository.FILE_TRANSFER_COMPLETE) {
             try {
                 myLock.lock();
                 receivePacket = new DatagramPacket(receiveData, receiveData.length);
