@@ -20,21 +20,23 @@ public class AckListner implements Runnable {
 	private Timer myTimer;
 
 	private void ProcessAck() {
-		while (!DataRepository.FILE_TRANSFER_COMPLETE) {// todo: while(last ack
-														// not received.)
+		while (true) {
 			try {
 				myLock.lock();
 				while (!DataRepository.AckQueue.isEmpty()) {
 					Datagram dg = DataRepository.AckQueue.poll();
 					int seqNo = dg.getSequenceNumber();
-					System.out.println("Processing ACK: " + seqNo);
+					// System.out.println("Processing ACK: " + seqNo);
 					if (seqNo == -1) {
 						myDatagramSender.Retransmit(0, dg.ServerNumber);
 					} else if (SlidingWindow.setAck(seqNo, dg.ServerNumber)) {
 						// a triple ack has been found ... so do fast retransmit
 						// todo: reset timer
 						myTimer.resetTimer();
-						System.out.println("Triple dup on seq:"+seqNo+ " by server:"+dg.ServerNumber);
+						/*
+						 * System.out.println("Triple dup on seq:" + seqNo +
+						 * " by server:" + dg.ServerNumber);
+						 */
 						if (SlidingWindow.Window.get(seqNo + 1) != null) {
 							for (Integer serverNumber : DataRepository.serverIPs
 									.values()) {
@@ -42,7 +44,7 @@ public class AckListner implements Runnable {
 										seqNo + 1, serverNumber)) {
 									myDatagramSender.Retransmit(seqNo + 1,
 											serverNumber);
-									System.out.println("Retransmit on triple dup seq:"+(seqNo+1)+" to server:"+serverNumber);
+									// System.out.println("Retransmit on triple dup seq:"+(seqNo+1)+" to server:"+serverNumber);
 								}
 							}
 						}
@@ -57,14 +59,23 @@ public class AckListner implements Runnable {
 									.checkIfAckCompletedByAllRecievers(seqindex)) {
 								SlidingWindow.removeItemFromWindow(seqindex);
 								myTimer.resetTimer();
-								System.out
-										.println("Removed Segment with seqNo: "
-												+ seqindex);
+								/*
+								 * System.out
+								 * .println("Removed Segment with seqNo: " +
+								 * seqindex);
+								 */
 								if (DataRepository.LAST_DATAPACKET_SEQNO == seqindex) {
 									DataRepository.FILE_TRANSFER_COMPLETE = true;
 									System.out
 											.println("Final ACK received, seqNo: "
 													+ DataRepository.LAST_DATAPACKET_SEQNO);
+									System.out
+											.println("Time taken: "
+													+ (System
+															.currentTimeMillis() - DataRepository.TimeTakenForFileTransfer)
+													/ 1000 + " sec");
+									SendAckToTerminate();
+									System.exit(0);
 									break;
 								}
 								Datagram tempDg = myDatagramSender
@@ -75,15 +86,16 @@ public class AckListner implements Runnable {
 									System.out
 											.println("Waiting for last ACK with seqNo: "
 													+ DataRepository.LAST_DATAPACKET_SEQNO);
-								} else {
-									// Segment tempSeg = new Segment(tempDg);
-									// SlidingWindow.addItemToWindow(tempDg.getSequenceNumber(),
-									// tempSeg);
-									System.out
-											.println("Sent new Segment with seqNo: "
-													+ tempDg.getSequenceNumber());
-									//Thread.sleep(10);
-								}
+								} /*
+								 * else { // Segment tempSeg = new
+								 * Segment(tempDg); //
+								 * SlidingWindow.addItemToWindow
+								 * (tempDg.getSequenceNumber(), // tempSeg);
+								 * System.out
+								 * .println("Sent new Segment with seqNo: " +
+								 * tempDg.getSequenceNumber());
+								 * //Thread.sleep(10); }
+								 */
 								seqindex++;
 								if (seqindex > seqNo) {
 									break;
@@ -98,6 +110,13 @@ public class AckListner implements Runnable {
 			} finally {
 				myLock.unlock();
 			}
+		}
+	}
+
+	private void SendAckToTerminate() {
+		Datagram lastAckDg = new Datagram(new byte[0], 0, false);
+		for (int i = 0; i < 10; i++) {
+			myDatagramSender.sendDatagram(lastAckDg);
 		}
 	}
 
