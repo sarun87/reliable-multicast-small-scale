@@ -27,13 +27,6 @@ class UDPClient {
 			for (int i = 0; i < DataRepository.WINDOWSIZE; i++) {
 				try {
 					ds.TransmitNextSegment();
-					// Datagram tempDg = ds.TransmitNextSegment();
-					// Segment tempSeg = new Segment(tempDg);
-					// SlidingWindow.addItemToWindow(tempDg.getSequenceNumber(),
-					// tempSeg);
-					// System.out.println("Sent new Segment with seqNo: " +
-					// tempDg.getSequenceNumber());
-					//Thread.sleep(1);
 				} catch (IOException ex) {
 					Logger.getLogger(UDPClient.class.getName()).log(
 							Level.SEVERE, null, ex);
@@ -45,14 +38,6 @@ class UDPClient {
 				// do nothing
 			}
 
-			/*
-			 * long end = System.currentTimeMillis(); timerThread.join();
-			 * timerThread.stop(); System.out.println("timerThread ended"); //
-			 * ackListnerThread.join(); ackListnerThread.stop();
-			 * System.out.println("ackListnerThread ended"); //
-			 * networkListnerThread.join(); networkListnerThread.stop();
-			 * System.out.println("networkListnerThread ended");
-			 */
 		} catch (Exception ex) {
 			Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null,
 					ex);

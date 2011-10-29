@@ -56,7 +56,6 @@ public class DatagramSender {
 	}
 
 	public synchronized void Retransmit(int sequenceNumber, int serverNo) {
-		// todo: set timer to new value.
 		Segment segmentToRetransmit = SlidingWindow.Window.get(sequenceNumber);
 		segmentToRetransmit.PacketSentTime = System.currentTimeMillis();
 		Datagram dgToRetransmit = segmentToRetransmit.Datapacket;
@@ -83,8 +82,6 @@ public class DatagramSender {
 			Logger.getLogger(DatagramSender.class.getName()).log(Level.SEVERE,
 					null, ex);
 		}
-		// System.out.println("Retransmitting datagram: " +
-		// dgToRetransmit.getSequenceNumber());
 	}
 
 	public void sendDatagram(Datagram dataGram) {

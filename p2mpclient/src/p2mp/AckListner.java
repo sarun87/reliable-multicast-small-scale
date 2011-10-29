@@ -26,17 +26,12 @@ public class AckListner implements Runnable {
 				while (!DataRepository.AckQueue.isEmpty()) {
 					Datagram dg = DataRepository.AckQueue.poll();
 					int seqNo = dg.getSequenceNumber();
-					// System.out.println("Processing ACK: " + seqNo);
+
 					if (seqNo == -1) {
 						myDatagramSender.Retransmit(0, dg.ServerNumber);
 					} else if (SlidingWindow.setAck(seqNo, dg.ServerNumber)) {
 						// a triple ack has been found ... so do fast retransmit
-						// todo: reset timer
 						myTimer.resetTimer();
-						/*
-						 * System.out.println("Triple dup on seq:" + seqNo +
-						 * " by server:" + dg.ServerNumber);
-						 */
 						if (SlidingWindow.Window.get(seqNo + 1) != null) {
 							for (Integer serverNumber : DataRepository.serverIPs
 									.values()) {
@@ -59,11 +54,6 @@ public class AckListner implements Runnable {
 									.checkIfAckCompletedByAllRecievers(seqindex)) {
 								SlidingWindow.removeItemFromWindow(seqindex);
 								myTimer.resetTimer();
-								/*
-								 * System.out
-								 * .println("Removed Segment with seqNo: " +
-								 * seqindex);
-								 */
 								if (DataRepository.LAST_DATAPACKET_SEQNO == seqindex) {
 									DataRepository.FILE_TRANSFER_COMPLETE = true;
 									System.out
@@ -86,16 +76,7 @@ public class AckListner implements Runnable {
 									System.out
 											.println("Waiting for last ACK with seqNo: "
 													+ DataRepository.LAST_DATAPACKET_SEQNO);
-								} /*
-								 * else { // Segment tempSeg = new
-								 * Segment(tempDg); //
-								 * SlidingWindow.addItemToWindow
-								 * (tempDg.getSequenceNumber(), // tempSeg);
-								 * System.out
-								 * .println("Sent new Segment with seqNo: " +
-								 * tempDg.getSequenceNumber());
-								 * //Thread.sleep(10); }
-								 */
+								} 
 								seqindex++;
 								if (seqindex > seqNo) {
 									break;
@@ -122,10 +103,15 @@ public class AckListner implements Runnable {
 
 	@Override
 	public void run() {
-		myLock = new ReentrantLock();
-		myTimer = Timer.getInstance();
-		myDatagramSender = DatagramSender.getInstance();
+		try {
+			myLock = new ReentrantLock();
+			myTimer = Timer.getInstance();
+			myDatagramSender = DatagramSender.getInstance();
 
-		ProcessAck();
+			ProcessAck();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
 	}
 }

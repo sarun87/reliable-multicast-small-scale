@@ -25,8 +25,6 @@ public class SlidingWindow {
 			EndingSeqNumber = sequenceNumber;
 		}
 		Window.put(sequenceNumber, info);
-		// EndingSeqNumber = EndingSeqNumber + 1;
-
 		return true;
 	}
 
@@ -54,10 +52,6 @@ public class SlidingWindow {
 				&& sequenceNumber < StartingSeqNumber
 						+ DataRepository.WINDOWSIZE) {
 			Segment resultSegment = Window.get(sequenceNumber);
-			/*
-			 * System.out.println("Start:" + StartingSeqNumber + " End:" +
-			 * EndingSeqNumber + " seq:" + sequenceNumber);
-			 */
 			resultSegment.ReceiverAckList[receiver] = resultSegment.ReceiverAckList[receiver] + 1;
 			Window.put(sequenceNumber, resultSegment);
 
