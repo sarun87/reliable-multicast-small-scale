@@ -78,7 +78,7 @@ class p2mpserver {
 				//System.out.println("In sequence packet with seq:"+seqNumber);
 				SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 				
-				if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt() == DataRepository.ACKPACKET){
+				if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt(0) == DataRepository.ACKPACKET){
 					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
 					break;
 				}
@@ -97,8 +97,6 @@ class p2mpserver {
 				//System.out.print("Sending segments to upper layer:");
 				for(int count = SlidingWindow.StartingSeqNumber; count <= maxSeqInOrder; ++count){
 					Datagram dgToBeWritten = SlidingWindow.Window.get(count);
-					//Integer size = ByteBuffer.allocate(4).put(dgToBeWritten.dataSize).getInt(0);
-					//String writeString = new String(dgToBeWritten.data);
 					out.write(dgToBeWritten.data);
 					SlidingWindow.removeItemFromWindow(count);
 					//System.out.print(" "+count+" ");
@@ -153,7 +151,7 @@ class p2mpserver {
 										sendData.length, IPAddress, port);
 					serverSocket.send(sendPacket);
 				}
-				else if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt() == DataRepository.ACKPACKET){
+				else if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt(0) == DataRepository.ACKPACKET){
 					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
 					break;
 				}
