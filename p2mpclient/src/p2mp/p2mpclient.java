@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class UDPClient {
+class p2mpclient {
 
 	public static void main(String args[]) {
 		try {
@@ -28,7 +28,7 @@ class UDPClient {
 				try {
 					ds.TransmitNextSegment();
 				} catch (IOException ex) {
-					Logger.getLogger(UDPClient.class.getName()).log(
+					Logger.getLogger(p2mpclient.class.getName()).log(
 							Level.SEVERE, null, ex);
 				}
 			}
@@ -39,7 +39,7 @@ class UDPClient {
 			}
 
 		} catch (Exception ex) {
-			Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null,
+			Logger.getLogger(p2mpclient.class.getName()).log(Level.SEVERE, null,
 					ex);
 		}
 	}
@@ -50,23 +50,22 @@ class UDPClient {
 			// Set the Number of Receivers, Window Size and Number of
 			// receivers in the DataRepository.
 			DataRepository.serverIPs = new HashMap<String, Integer>();
-			DataRepository.SENDER_PORT_NUMBER = Integer.parseInt(args[0]);
 			int i = 0;
-			for (i = 1; args[i].contains(".") == true
-					&& args[i].contains(".txt") == false; ++i) {
-				DataRepository.serverIPs.put(args[i].toString(), i - 1);
+			for (i = 0; !(args[i].contains(".") == false); ++i) {
+				DataRepository.serverIPs.put(args[i].toString(), i);
 			}
-			DataRepository.NUMBER_OF_RECEIVERS = i - 1;
+			DataRepository.NUMBER_OF_RECEIVERS = i;
 			DataRepository.clientSocket = new DatagramSocket();
 
-			DataRepository.fileName = args[i];
+			DataRepository.SENDER_PORT_NUMBER = Integer.parseInt(args[i]);
+			DataRepository.fileName = args[++i];
 			DataRepository.WINDOWSIZE = Integer.parseInt(args[++i]);
 			DataRepository.MSS = Integer.parseInt(args[++i]);
+			DataRepository.RTT = Integer.parseInt(args[++i]);
 
 			DataRepository.AckQueue = new LinkedList<Datagram>();
 		} catch (SocketException ex) {
-			Logger.getLogger(UDPClient.class.getName()).log(Level.SEVERE, null,
-					ex);
+			System.out.println("Format: p2mpclient <serverIP1> <serverIP2> ... <portNo#> <InputFileName.txt> <Window Size> <MSS> <RTT>");
 		}
 	}
 }
