@@ -24,7 +24,11 @@ public class AckListner implements Runnable {
 			try {
 				myLock.lock();
 				while (!DataRepository.AckQueue.isEmpty()) {
-					Datagram dg = DataRepository.AckQueue.poll();
+					
+					Datagram dg = DataRepository.AckQueue.take();
+					if(dg == null){
+						break;
+					}
 					int seqNo = dg.getSequenceNumber();
 
 					if (seqNo == -1) {
@@ -63,7 +67,7 @@ public class AckListner implements Runnable {
 											.println("Time taken: "
 													+ (System
 															.currentTimeMillis() - DataRepository.TimeTakenForFileTransfer)
-													/ 1000 + " sec");
+													/ 1000.0 + " sec");
 									SendAckToTerminate();
 									System.exit(0);
 									break;

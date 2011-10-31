@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +63,7 @@ class p2mpclient {
 			DataRepository.MSS = Integer.parseInt(args[++i]);
 			DataRepository.RTT = Integer.parseInt(args[++i]);
 
-			DataRepository.AckQueue = new LinkedList<Datagram>();
+			DataRepository.AckQueue = new LinkedBlockingQueue<Datagram>();
 		} catch (SocketException ex) {
 			System.out.println("Format: p2mpclient <serverIP1> <serverIP2> ... <portNo#> <InputFileName.txt> <Window Size> <MSS> <RTT>");
 		}
