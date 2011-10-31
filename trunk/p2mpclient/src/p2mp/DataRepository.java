@@ -6,7 +6,7 @@ package p2mp;
 
 import java.net.DatagramSocket;
 import java.util.HashMap;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 
 public class DataRepository {
 
@@ -29,7 +29,7 @@ public class DataRepository {
 	public static DatagramSocket clientSocket;
 	public static String fileName;
 
-	public static Queue<Datagram> AckQueue;// queue to hold the received acks -
+	public static BlockingQueue<Datagram> AckQueue;// queue to hold the received acks -
 											// processed later by the
 											// ackreceiver
 
