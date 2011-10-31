@@ -78,7 +78,7 @@ class p2mpserver {
 				//System.out.println("In sequence packet with seq:"+seqNumber);
 				SlidingWindow.addItemToWindow(seqNumber, receivedDatagram);
 				
-				if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt(0) == DataRepository.ACKPACKET){
+				if(ByteBuffer.allocate(2).put(receivedDatagram.datagramType).getChar(0) == DataRepository.ACKPACKET){
 					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
 					break;
 				}
@@ -151,7 +151,7 @@ class p2mpserver {
 										sendData.length, IPAddress, port);
 					serverSocket.send(sendPacket);
 				}
-				else if(ByteBuffer.allocate(4).put(receivedDatagram.datagramType).getInt(0) == DataRepository.ACKPACKET){
+				else if(ByteBuffer.allocate(2).put(receivedDatagram.datagramType).getChar(0) == DataRepository.ACKPACKET){
 					System.out.println("END OF FILE RECEIVED! File Transfer complete!");
 					break;
 				}
